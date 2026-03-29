@@ -7,11 +7,11 @@
 void vbo_init(VBO *vbo, float *data, size_t size)
 {
   vbo->data = data;
-  vbo->size = size;
+  vbo->size = size / sizeof(float);
   
   glGenBuffers(1, &vbo->ID);
   glBindBuffer(GL_ARRAY_BUFFER, vbo->ID);
-  glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), data, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
 void vbo_bind(const VBO *vbo)
@@ -35,11 +35,11 @@ void vbo_cleanup(VBO *vbo)
 void ebo_init(EBO *ebo, GLuint *data, size_t size)
 {
   ebo->data = data;
-  ebo->size = size;
+  ebo->size = size / sizeof(unsigned int);
 
   glGenBuffers(1, &ebo->ID);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo->ID);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof(unsigned int), data, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
 void ebo_bind(const EBO *ebo)
