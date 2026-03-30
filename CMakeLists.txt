@@ -6,13 +6,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(OpenGL REQUIRED)
 
+file(GLOB_RECURSE SRC_FILES 
+  ${CMAKE_SOURCE_DIR}/src/**.c
+  ${CMAKE_SOURCE_DIR}/src/**.h
+)
+
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # pch.h
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.h)
 
 # files
-add_subdirectory(src)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 # Nexus_c

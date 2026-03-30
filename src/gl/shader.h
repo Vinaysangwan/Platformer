@@ -1,4 +1,5 @@
 #pragma once
+#include "utils.h"
 
 typedef struct
 {
@@ -9,3 +10,7 @@ void shader_init(Shader *shader, const char* vertFilePath, const char* fragFileP
 void shader_start(const Shader* shader);
 void shader_stop();
 void shader_cleanup(Shader* shader);
+
+// Uniforms
+int shader_get_uniformLocation(Shader *shader, const char* name);
+void shader_loadMat4(int location, Mat4 mat);

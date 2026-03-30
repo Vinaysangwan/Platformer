@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "shader.h"
-#include "utils.h"
 #include "logger.h"
 
 GLuint get_shaderID(const char* filePath, GLenum type)
@@ -64,4 +63,21 @@ void shader_stop()
 void shader_cleanup(Shader* shader)
 {
   glDeleteProgram(shader->ID);
+}
+
+// Uniforms
+int shader_get_uniformLocation(Shader *shader, const char* name)
+{
+  int location = glGetUniformLocation(shader->ID, name);
+  if (location < 0)
+  {
+    NX_ASSERT(false, "Failed to get Uniform Location: %s", name);
+  }
+
+  return location;
+}
+
+void shader_loadMat4(int location, Mat4 mat)
+{
+  glUniformMatrix4fv(location, 1, GL_FALSE, &mat.values[0]);
 }
