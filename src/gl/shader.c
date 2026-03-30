@@ -77,6 +77,11 @@ int shader_get_uniformLocation(Shader *shader, const char* name)
   return location;
 }
 
+void shader_loadVec2i(int location, Vec2i vec)
+{
+  glUniform2i(location, vec.x, vec.y);
+}
+
 void shader_loadMat4(int location, Mat4 mat)
 {
   glUniformMatrix4fv(location, 1, GL_FALSE, &mat.values[0]);

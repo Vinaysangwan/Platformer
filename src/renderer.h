@@ -16,8 +16,11 @@ typedef struct
 
   GLint location_projectionMatrix;
   GLint location_transformationMatrix;
+  GLint location_spriteSize;
+  GLint location_atlasOffset;
 } Renderer2D;
 
 void renderer2D_init(Renderer2D* renderer, const char* vertFilePath, const char* fragFilePath, const char* textureAtlasPath);
+void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float rot, float scale);
 void renderer2D_drawSprite(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float scale);
 void renderer2D_cleanup(Renderer2D* renderer);
