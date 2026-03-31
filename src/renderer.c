@@ -69,6 +69,7 @@ void renderer2D_init(Renderer2D* renderer, const char* vertFilePath, const char*
   // Uniform Locations
   {
     renderer->location_projectionMatrix = shader_get_uniformLocation(&renderer->shader, "uProjectionMatrix");
+    renderer->location_viewMatrix = shader_get_uniformLocation(&renderer->shader, "uViewMatrix");
   }
 
   // Load Unform Locations
@@ -88,7 +89,8 @@ void renderer2D_beginCamera(Renderer2D *renderer, Camera2D *cam)
   glActiveTexture(GL_TEXTURE0);
   texture_bind(&renderer->textureAtlas);
  
-
+  Mat4 viewMatrix = view_matrix(cam->pos, cam->rot, cam->zoom, WINDOW_WIDTH, WINDOW_HEIGHT);
+  shader_loadMat4(renderer->location_viewMatrix, viewMatrix);
 }
 
 void renderer2D_begin(Renderer2D* renderer)
@@ -99,6 +101,9 @@ void renderer2D_begin(Renderer2D* renderer)
 
   glActiveTexture(GL_TEXTURE0);
   texture_bind(&renderer->textureAtlas);
+
+  Mat4 viewMatrix = view_matrix((Vec2){WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2}, 0, 1.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
+  shader_loadMat4(renderer->location_viewMatrix, viewMatrix);
 }
 
 void renderer2D_flush(Renderer2D* renderer)
@@ -141,7 +146,7 @@ void renderer2D_cleanup(Renderer2D* renderer)
   shader_cleanup(&renderer->shader);
 }
 
-void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float rot, float scale)
+void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float scale, float rot)
 {
   if(renderer->quadCount >= MAX_QUADS)  return;
   
@@ -159,7 +164,7 @@ void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos,
   for (int i=0; i < 4; i++)
   {
     renderer->posBuffer[posIDX + i * 2 + 0] = pos.x + lx[i] * cosV - ly[i] * sinV;
-    renderer->posBuffer[posIDX + i * 2 + 1] = pos.y + lx[i] * sinV - ly[i] * cosV;
+    renderer->posBuffer[posIDX + i * 2 + 1] = pos.y + lx[i] * sinV + ly[i] * cosV;
   }
 
   float x0 = sprite.atlasOffset.x;
@@ -168,15 +173,15 @@ void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos,
   float y1 = sprite.atlasOffset.y + sprite.size.y;
 
   int uvIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_UV;
-  renderer->uvBuffer[uvIDX + 0] = x0; renderer->uvBuffer[uvIDX + 1] = y0;
-  renderer->uvBuffer[uvIDX + 2] = x0; renderer->uvBuffer[uvIDX + 3] = y1;
-  renderer->uvBuffer[uvIDX + 4] = x1; renderer->uvBuffer[uvIDX + 5] = y1;
-  renderer->uvBuffer[uvIDX + 6] = x1; renderer->uvBuffer[uvIDX + 7] = y0;
+  renderer->uvBuffer[uvIDX + 0] = x0; renderer->uvBuffer[uvIDX + 1] = y1;
+  renderer->uvBuffer[uvIDX + 2] = x0; renderer->uvBuffer[uvIDX + 3] = y0;
+  renderer->uvBuffer[uvIDX + 4] = x1; renderer->uvBuffer[uvIDX + 5] = y0;
+  renderer->uvBuffer[uvIDX + 6] = x1; renderer->uvBuffer[uvIDX + 7] = y1;
 
   renderer->quadCount++;
 }
 
 void renderer2D_drawSprite(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float scale)
 {
-  renderer2D_drawSpritePro(renderer, spriteID, pos, 0, scale);
+  renderer2D_drawSpritePro(renderer, spriteID, pos, scale, 0);
 }

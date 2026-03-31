@@ -27,7 +27,13 @@ int main(void)
     .spriteID = SPRITE_KNIGHT_IDLE,
     .pos = {16, 16},
     .rot = 0.0f,
-    .scale = 2.0f,
+    .scale = 1.0f,
+  };
+
+  Camera2D camera = {
+    .pos = player.pos,
+    .rot = 0,
+    .zoom = 2.0f,
   };
 
   float speed = 200;
@@ -38,14 +44,14 @@ int main(void)
     int gridX = 5;
     int gridY = 10;
 
-    int r = 32 * (i / 10 + gridY) + 16;
-    int c = 32 * (i % 10 + gridX) + 16;
+    int r = 16 * (i / 10 + gridY) + 16;
+    int c = 16 * (i % 10 + gridX) + 16;
     
     Entity tile = {
       .spriteID = SPRITE_TILE_GRASS,
       .pos = {c, r},
       .rot = 0.0f,
-      .scale = 2.0f,
+      .scale = 1.0f,
     };
 
     tiles[i] = tile;
@@ -68,14 +74,20 @@ int main(void)
       window_stop();
     }
 
+    camera.pos = player.pos;
     if (key_down(KEY_W)) player.pos.y -= speed * dt;
     if (key_down(KEY_S)) player.pos.y += speed * dt;
     if (key_down(KEY_A)) player.pos.x -= speed * dt;
     if (key_down(KEY_D)) player.pos.x += speed * dt;
 
+    if (key_down(KEY_Q)) player.rot -= 1.0f;
+    if (key_down(KEY_E)) player.rot += 1.0f;
+    if (key_down(KEY_LEFT)) camera.rot -= 1.0f;
+    if (key_down(KEY_RIGHT)) camera.rot += 1.0f;
+
     // Game Rendering
     clear_background(&COLOR_BLACK);
-    renderer2D_begin(&renderer);
+    renderer2D_beginCamera(&renderer, &camera);
 
     // Tiles
     for (int i=0; i < MAX_TILES; i++)
@@ -85,7 +97,7 @@ int main(void)
     }
 
     // Player
-    renderer2D_drawSpritePro(&renderer, player.spriteID, player.pos, player.rot, player.scale);
+    renderer2D_drawSpritePro(&renderer, player.spriteID, player.pos, player.scale, player.rot);
 
     renderer2D_end(&renderer);
     window_swap_buffers();

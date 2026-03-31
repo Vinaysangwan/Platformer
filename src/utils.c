@@ -54,13 +54,15 @@ Mat4 transformation_matrix(Vec2 pos, float rot, Vec2 scale)
   Mat4 result = {0};
 
   float rad = rot * DEG_2_RAD;
+  float cosV = cosf(rad);
+  float sinV = sinf(rad);
 
-  result.ax = scale.x * cosf(rad);
-  result.ay = -scale.y * sinf(rad);
+  result.ax = scale.x * cosV;
+  result.ay = -scale.y * sinV;
   result.aw = pos.x;
 
-  result.bx = scale.x * sinf(rad);
-  result.by = scale.y * cosf(rad);
+  result.bx = scale.x * sinV;
+  result.by = scale.y * cosV;
   result.bw = pos.y;
 
   result.cz = 1.0f;
@@ -68,4 +70,28 @@ Mat4 transformation_matrix(Vec2 pos, float rot, Vec2 scale)
   result.dw = 1.0f;
 
   return result;
+}
+
+Mat4 view_matrix(Vec2 pos, float rot, float zoom, int screenW, int screenH)
+{
+  Mat4 view = {0};
+
+  float rad = DEG_2_RAD * rot;
+  float cosV = cosf(rad);
+  float sinV = sinf(rad);
+  float tx = -pos.x;
+  float ty = -pos.y;
+
+  view.values[0 + 0 * 4] = cosV * zoom;
+  view.values[1 + 0 * 4] = -sinV * zoom;
+  view.values[0 + 1 * 4] = sinV * zoom;
+  view.values[1 + 1 * 4] = cosV * zoom;
+
+  view.values[0 + 3 * 4] = (tx * cosV + ty * sinV) * zoom + screenW * 0.5f;
+  view.values[1 + 3 * 4] = (tx * (-sinV) + ty * cosV) * zoom + screenH * 0.5f;
+
+  view.values[2 + 2 * 4] = 1.0f;
+  view.values[3 + 3 * 4] = 1.0f;
+
+  return view;
 }

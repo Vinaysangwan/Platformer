@@ -39,5 +39,12 @@ typedef struct
   };
 } Mat4;
 
+const static Mat4 IDENTITY_MAT4 = {
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1
+};
+
 Mat4 orthographic_project(float left, float right, float top, float bottom);
 Mat4 transformation_matrix(Vec2 pos, float rot, Vec2 scale);
+Mat4 view_matrix(Vec2 pos, float rot, float zoom, int screenW, int screenH);
