@@ -85,21 +85,30 @@ int main(void)
     if (key_down(KEY_LEFT)) camera.rot -= 1.0f;
     if (key_down(KEY_RIGHT)) camera.rot += 1.0f;
 
-    // Game Rendering
     clear_background(&COLOR_BLACK);
+
+    // Game
     renderer2D_beginCamera(&renderer, &camera);
-
-    // Tiles
-    for (int i=0; i < MAX_TILES; i++)
     {
-      Entity tile = tiles[i];
-      renderer2D_drawSprite(&renderer, tile.spriteID, tile.pos, tile.scale);
+      // Tiles
+      for (int i=0; i < MAX_TILES; i++)
+      {
+        Entity tile = tiles[i];
+        renderer2D_drawSprite(&renderer, tile.spriteID, tile.pos, tile.scale);
+      }
+
+      // Player
+      renderer2D_drawSpritePro(&renderer, player.spriteID, player.pos, player.scale, player.rot);
     }
-
-    // Player
-    renderer2D_drawSpritePro(&renderer, player.spriteID, player.pos, player.scale, player.rot);
-
     renderer2D_end(&renderer);
+
+    // UI
+    renderer2D_begin(&renderer);
+    {
+      renderer2D_drawSprite(&renderer, SPRITE_QUAD, (Vec2){100, 100}, 50);
+    }
+    renderer2D_end(&renderer);
+
     window_swap_buffers();
   }
 

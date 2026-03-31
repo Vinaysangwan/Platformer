@@ -6,6 +6,8 @@
 // #############################################################################
 typedef enum
 {
+  SPRITE_QUAD,
+  
   // Knight
   SPRITE_KNIGHT_IDLE,
   SPRITE_KNIGHT_RUN,
@@ -24,6 +26,8 @@ typedef struct
 } Sprite;
 
 static const Sprite SPRITES[SPRITE_COUNT] = {
+  [SPRITE_QUAD] = {.atlasOffset = {272, 0}, .size = {1, 1}},
+  
   // Knight
   [SPRITE_KNIGHT_IDLE] = {.atlasOffset = {0, 0}, .size = {32, 32}},
   [SPRITE_KNIGHT_RUN] = {.atlasOffset = {0, 64}, .size = {32, 32}},

@@ -78,6 +78,9 @@ void renderer2D_init(Renderer2D* renderer, const char* vertFilePath, const char*
     shader_loadMat4(renderer->location_projectionMatrix, projectionMatrix);
   }
   shader_stop();
+
+  glActiveTexture(GL_TEXTURE0);
+  texture_bind(&renderer->textureAtlas);
 }
 
 void renderer2D_beginCamera(Renderer2D *renderer, Camera2D *cam)
@@ -85,9 +88,6 @@ void renderer2D_beginCamera(Renderer2D *renderer, Camera2D *cam)
   renderer->quadCount = 0;
   shader_start(&renderer->shader);
   vao_bind(&renderer->vao);
-
-  glActiveTexture(GL_TEXTURE0);
-  texture_bind(&renderer->textureAtlas);
  
   Mat4 viewMatrix = view_matrix(cam->pos, cam->rot, cam->zoom, WINDOW_WIDTH, WINDOW_HEIGHT);
   shader_loadMat4(renderer->location_viewMatrix, viewMatrix);
@@ -98,9 +98,6 @@ void renderer2D_begin(Renderer2D* renderer)
   renderer->quadCount = 0;
   shader_start(&renderer->shader);
   vao_bind(&renderer->vao);
-
-  glActiveTexture(GL_TEXTURE0);
-  texture_bind(&renderer->textureAtlas);
 
   Mat4 viewMatrix = view_matrix((Vec2){WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2}, 0, 1.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
   shader_loadMat4(renderer->location_viewMatrix, viewMatrix);
@@ -124,15 +121,13 @@ void renderer2D_flush(Renderer2D* renderer)
     &renderer->uvBuffer[0]
   );
 
-  glDrawElements(GL_TRIANGLES, renderer->vao.vertexCount, GL_UNSIGNED_INT, NULL);
+  glDrawElements(GL_TRIANGLES, renderer->quadCount * IDX_PER_QUAD, GL_UNSIGNED_INT, NULL);
 }
 
 void renderer2D_end(Renderer2D* renderer)
 {
   renderer2D_flush(renderer);
   vao_unbind();
-  
-  texture_unbind();
   shader_stop();
 }
 
