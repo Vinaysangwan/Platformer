@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "textures.h"
-#include "logger.h"
+#include "core/logger.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

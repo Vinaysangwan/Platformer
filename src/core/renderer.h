@@ -3,6 +3,7 @@
 #include "gl/vao.h"
 #include "gl/textures.h"
 #include "assets.h"
+#include "entities.h"
 
 void renderer_draw(const Shader* shader, const VAO* vao);
 void renderer_drawTexture(const Shader* shader, const VAO* vao, const Texture *texture);
@@ -48,6 +49,13 @@ void renderer2D_init(Renderer2D* renderer, const char* vertFilePath, const char*
 void renderer2D_beginCamera(Renderer2D* renderer, Camera2D *cam);
 void renderer2D_begin(Renderer2D* renderer);
 void renderer2D_end(Renderer2D* renderer);
+void renderer2D_cleanup(Renderer2D* renderer);
+
 void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float scale, float rot);
 void renderer2D_drawSprite(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float scale);
-void renderer2D_cleanup(Renderer2D* renderer);
+// TODO: Fix this
+void renderer2D_drawAnimatedSpritePro(Renderer2D *renderer, SpriteID spriteID, float fps, Vec2 pos, float scale, float rot);
+void renderer2D_drawAnimatedSprite(Renderer2D *renderer, SpriteID spriteID, float fps, Vec2 pos, float scale);
+
+void renderer2D_drawEntity(Renderer2D *renderer, Entity *entity);
+void renderer2D_drawAnimEntity(Renderer2D *renderer, AnimEntity *entity, float duration);

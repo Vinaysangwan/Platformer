@@ -1,17 +1,10 @@
 #include "pch.h"
 #include "config.h"
-#include "logger.h"
-#include "renderer.h"
+#include "core/logger.h"
+#include "core/renderer.h"
 
 #define MAX_TILES 50
 
-typedef struct
-{
-  SpriteID spriteID;
-  Vec2 pos;
-  float rot;
-  float scale;
-} Entity;
 
 int main(void)
 {
@@ -23,21 +16,23 @@ int main(void)
   Renderer2D renderer;
   renderer2D_init(&renderer, "assets/shaders/quad.vert", "assets/shaders/quad.frag", TEXTURE_ATLAS);
 
-  Entity player = {
+  // init player
+  AnimEntity player = {
     .spriteID = SPRITE_KNIGHT_IDLE,
     .pos = {16, 16},
     .rot = 0.0f,
     .scale = 1.0f,
   };
+  float speed = 200;
 
+  // init camera
   Camera2D camera = {
     .pos = player.pos,
     .rot = 0,
     .zoom = 2.0f,
   };
 
-  float speed = 200;
-
+  // init tiles
   Entity tiles[MAX_TILES] = {0};    // 5 x 10 Grid Pattern
   for (int i = 0; i < MAX_TILES; i++)
   {
@@ -80,13 +75,7 @@ int main(void)
     if (key_down(KEY_A)) player.pos.x -= speed * dt;
     if (key_down(KEY_D)) player.pos.x += speed * dt;
 
-    if (key_down(KEY_Q)) player.rot -= 1.0f;
-    if (key_down(KEY_E)) player.rot += 1.0f;
-    if (key_down(KEY_LEFT)) camera.rot -= 1.0f;
-    if (key_down(KEY_RIGHT)) camera.rot += 1.0f;
-
     clear_background(&COLOR_BLACK);
-
     // Game
     renderer2D_beginCamera(&renderer, &camera);
     {
@@ -94,11 +83,11 @@ int main(void)
       for (int i=0; i < MAX_TILES; i++)
       {
         Entity tile = tiles[i];
-        renderer2D_drawSprite(&renderer, tile.spriteID, tile.pos, tile.scale);
+        renderer2D_drawEntity(&renderer, &tile);
       }
 
       // Player
-      renderer2D_drawSpritePro(&renderer, player.spriteID, player.pos, player.scale, player.rot);
+      renderer2D_drawAnimEntity(&renderer, &player, 0.8);
     }
     renderer2D_end(&renderer);
 

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "shader.h"
-#include "logger.h"
+#include "core/logger.h"
 
 GLuint get_shaderID(const char* filePath, GLenum type)
 {

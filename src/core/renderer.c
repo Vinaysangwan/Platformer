@@ -180,3 +180,137 @@ void renderer2D_drawSprite(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, fl
 {
   renderer2D_drawSpritePro(renderer, spriteID, pos, scale, 0);
 }
+
+void renderer2D_drawAnimatedSpritePro(Renderer2D *renderer, SpriteID spriteID, float fps, Vec2 pos, float scale, float rot)
+{
+  if(renderer->quadCount >= MAX_QUADS)  return;
+
+  Sprite sprite = SPRITES[spriteID];
+
+  float timerLimit = 1 / fps;
+  static float timer = 0;
+  static int currentFrame = 0;
+  timer += get_deltaTime();
+  if (timer >= timerLimit)
+  {
+    timer -= timerLimit;
+    currentFrame = (currentFrame + 1) % sprite.frameCount;
+  }
+  sprite.atlasOffset.x = sprite.atlasOffset.x + currentFrame * sprite.size.x;
+
+  float hw = sprite.size.x * scale * 0.5f;
+  float hh = sprite.size.y * scale * 0.5f;
+
+  float lx[4] = {-hw, -hw, hw, hw};
+  float ly[4] = {hh, -hh, -hh, hh};
+
+  float rad = DEG_2_RAD * rot;
+  float cosV = cosf(rad);
+  float sinV = sinf(rad);
+  int posIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_POS;
+  for (int i=0; i < 4; i++)
+  {
+    renderer->posBuffer[posIDX + i * 2 + 0] = pos.x + lx[i] * cosV - ly[i] * sinV;
+    renderer->posBuffer[posIDX + i * 2 + 1] = pos.y + lx[i] * sinV + ly[i] * cosV;
+  }
+
+  float x0 = sprite.atlasOffset.x;
+  float x1 = sprite.atlasOffset.x + sprite.size.x;
+  float y0 = sprite.atlasOffset.y;
+  float y1 = sprite.atlasOffset.y + sprite.size.y;
+
+  int uvIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_UV;
+  renderer->uvBuffer[uvIDX + 0] = x0; renderer->uvBuffer[uvIDX + 1] = y1;
+  renderer->uvBuffer[uvIDX + 2] = x0; renderer->uvBuffer[uvIDX + 3] = y0;
+  renderer->uvBuffer[uvIDX + 4] = x1; renderer->uvBuffer[uvIDX + 5] = y0;
+  renderer->uvBuffer[uvIDX + 6] = x1; renderer->uvBuffer[uvIDX + 7] = y1;
+
+  renderer->quadCount++;
+}
+
+void renderer2D_drawAnimatedSprite(Renderer2D *renderer, SpriteID spriteID, float fps, Vec2 pos, float scale)
+{
+  renderer2D_drawAnimatedSpritePro(renderer, spriteID, fps, pos, scale, 0);
+}
+
+void renderer2D_drawEntity(Renderer2D *renderer, Entity *entity)
+{
+  if(renderer->quadCount >= MAX_QUADS)  return;
+  
+  Sprite sprite = SPRITES[entity->spriteID];
+  float hw = sprite.size.x * entity->scale * 0.5f;
+  float hh = sprite.size.y * entity->scale * 0.5f;
+
+  float lx[4] = {-hw, -hw, hw, hw};
+  float ly[4] = {hh, -hh, -hh, hh};
+
+  float rad = DEG_2_RAD * entity->rot;
+  float cosV = cosf(rad);
+  float sinV = sinf(rad);
+  int posIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_POS;
+  for (int i=0; i < 4; i++)
+  {
+    renderer->posBuffer[posIDX + i * 2 + 0] = entity->pos.x + lx[i] * cosV - ly[i] * sinV;
+    renderer->posBuffer[posIDX + i * 2 + 1] = entity->pos.y + lx[i] * sinV + ly[i] * cosV;
+  }
+
+  float x0 = sprite.atlasOffset.x;
+  float x1 = sprite.atlasOffset.x + sprite.size.x;
+  float y0 = sprite.atlasOffset.y;
+  float y1 = sprite.atlasOffset.y + sprite.size.y;
+
+  int uvIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_UV;
+  renderer->uvBuffer[uvIDX + 0] = x0; renderer->uvBuffer[uvIDX + 1] = y1;
+  renderer->uvBuffer[uvIDX + 2] = x0; renderer->uvBuffer[uvIDX + 3] = y0;
+  renderer->uvBuffer[uvIDX + 4] = x1; renderer->uvBuffer[uvIDX + 5] = y0;
+  renderer->uvBuffer[uvIDX + 6] = x1; renderer->uvBuffer[uvIDX + 7] = y1;
+
+  renderer->quadCount++;
+}
+
+void renderer2D_drawAnimEntity(Renderer2D *renderer, AnimEntity *entity, float duration)
+{
+  if(renderer->quadCount >= MAX_QUADS)  return;
+  
+  Sprite sprite = SPRITES[entity->spriteID];
+
+  float timerLimit = duration / sprite.frameCount;
+  entity->timer += get_deltaTime();
+  if (entity->timer >= timerLimit)
+  {
+    entity->timer -= timerLimit;
+    entity->currentFrame = (entity->currentFrame + 1) % sprite.frameCount;
+  }
+  sprite.atlasOffset.x = sprite.atlasOffset.x + entity->currentFrame * sprite.size.x;
+
+  float hw = sprite.size.x * entity->scale * 0.5f;
+  float hh = sprite.size.y * entity->scale * 0.5f;
+
+  float lx[4] = {-hw, -hw, hw, hw};
+  float ly[4] = {hh, -hh, -hh, hh};
+
+  // Pos
+  float rad = DEG_2_RAD * entity->rot;
+  float cosV = cosf(rad);
+  float sinV = sinf(rad);
+  int posIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_POS;
+  for (int i=0; i < 4; i++)
+  {
+    renderer->posBuffer[posIDX + i * 2 + 0] = entity->pos.x + lx[i] * cosV - ly[i] * sinV;
+    renderer->posBuffer[posIDX + i * 2 + 1] = entity->pos.y + lx[i] * sinV + ly[i] * cosV;
+  }
+
+  // UV Coords
+  float x0 = sprite.atlasOffset.x;
+  float x1 = sprite.atlasOffset.x + sprite.size.x;
+  float y0 = sprite.atlasOffset.y;
+  float y1 = sprite.atlasOffset.y + sprite.size.y;
+
+  int uvIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_UV;
+  renderer->uvBuffer[uvIDX + 0] = x0; renderer->uvBuffer[uvIDX + 1] = y1;
+  renderer->uvBuffer[uvIDX + 2] = x0; renderer->uvBuffer[uvIDX + 3] = y0;
+  renderer->uvBuffer[uvIDX + 4] = x1; renderer->uvBuffer[uvIDX + 5] = y0;
+  renderer->uvBuffer[uvIDX + 6] = x1; renderer->uvBuffer[uvIDX + 7] = y1;
+
+  renderer->quadCount++;
+}
