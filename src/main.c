@@ -3,14 +3,14 @@
 #include "logger.h"
 #include "renderer.h"
 
+#define MAX_TILES 50
+
 typedef struct
 {
   SpriteID spriteID;
   Vec2 pos;
   float rot;
   float scale;
-
-  float speed;
 } Entity;
 
 int main(void)
@@ -19,38 +19,75 @@ int main(void)
   {
     NX_ASSERT(false, "Failed to Create Window");
   }
-  window_set_vsync(true);
 
   Renderer2D renderer;
   renderer2D_init(&renderer, "assets/shaders/quad.vert", "assets/shaders/quad.frag", TEXTURE_ATLAS);
 
-  Entity player = (Entity){
-    .spriteID = SPRITE_KNIGHT,
-    .pos = (Vec2){0, 0},
+  Entity player = {
+    .spriteID = SPRITE_KNIGHT_IDLE,
+    .pos = {16, 16},
     .rot = 0.0f,
     .scale = 2.0f,
-    .speed = 2.0f
   };
+
+  float speed = 200;
+
+  Entity tiles[MAX_TILES] = {0};    // 5 x 10 Grid Pattern
+  for (int i = 0; i < MAX_TILES; i++)
+  {
+    int gridX = 5;
+    int gridY = 10;
+
+    int r = 32 * (i / 10 + gridY) + 16;
+    int c = 32 * (i % 10 + gridX) + 16;
+    
+    Entity tile = {
+      .spriteID = SPRITE_TILE_GRASS,
+      .pos = {c, r},
+      .rot = 0.0f,
+      .scale = 2.0f,
+    };
+
+    tiles[i] = tile;
+  }
 
   // Game Loop
   while(window_isOpen())
   {
-    // Game Update
+    float dt = get_deltaTime();
+    static float timer = 0;
+    timer += dt;
+    if (timer >= 1.0f)
+    {
+      printf("FPS: %d\n", get_FPS());
+      timer = 0;
+    }
+    
     if(key_down(KEY_ESCAPE))
     {
       window_stop();
     }
 
-    if (key_down(KEY_W)) player.pos.y -= player.speed;
-    if (key_down(KEY_S)) player.pos.y += player.speed;
-    if (key_down(KEY_A)) player.pos.x -= player.speed;
-    if (key_down(KEY_D)) player.pos.x += player.speed;
+    if (key_down(KEY_W)) player.pos.y -= speed * dt;
+    if (key_down(KEY_S)) player.pos.y += speed * dt;
+    if (key_down(KEY_A)) player.pos.x -= speed * dt;
+    if (key_down(KEY_D)) player.pos.x += speed * dt;
 
     // Game Rendering
     clear_background(&COLOR_BLACK);
+    renderer2D_begin(&renderer);
 
+    // Tiles
+    for (int i=0; i < MAX_TILES; i++)
+    {
+      Entity tile = tiles[i];
+      renderer2D_drawSprite(&renderer, tile.spriteID, tile.pos, tile.scale);
+    }
+
+    // Player
     renderer2D_drawSpritePro(&renderer, player.spriteID, player.pos, player.rot, player.scale);
 
+    renderer2D_end(&renderer);
     window_swap_buffers();
   }
 

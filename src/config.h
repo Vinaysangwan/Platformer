@@ -3,4 +3,4 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-static const char* TEXTURE_ATLAS = "assets/textures/knight.png";
+static const char* TEXTURE_ATLAS = "assets/textures/TextureAtlas.png";

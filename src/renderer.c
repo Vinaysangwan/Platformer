@@ -36,49 +36,39 @@ void renderer2D_init(Renderer2D* renderer, const char* vertFilePath, const char*
 {
   shader_init(&renderer->shader, vertFilePath, fragFilePath);
   texture_init(&renderer->textureAtlas, textureAtlasPath);
+  renderer->quadCount = 0;
+
+  GLuint indices[MAX_QUADS * IDX_PER_QUAD];
+  for (int i = 0; i < MAX_QUADS; i++)
+  {
+    int idx = i * IDX_PER_QUAD;
+    int v = i * VERT_PER_QUAD;
+
+    indices[idx + 0] = v + 0;
+    indices[idx + 1] = v + 1;
+    indices[idx + 2] = v + 3;
+    indices[idx + 3] = v + 3;
+    indices[idx + 4] = v + 1;
+    indices[idx + 5] = v + 2;
+  }
+
   vao_init(&renderer->vao);
-
-  float vertices[] = {
-    -0.5f, 0.5f,
-    -0.5f, -0.5f,
-    0.5f, -0.5f,
-    0.5f, 0.5f,
-  };
-
-  float textureCoords[] = {
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-    1.0f, 1.0f,
-  };
-
-  GLuint indices[] = {
-    0, 1, 3,
-    3, 1, 2    
-  };
 
   ebo_init(&renderer->ebo, &indices[0], sizeof(indices));
   vao_setupEBO(&renderer->vao, &renderer->ebo);
   
-  VBO vboVertices;
-  vbo_init(&vboVertices, &vertices[0], sizeof(vertices));
-  vao_insertVBO(&renderer->vao, &vboVertices, 2);
+  vbo_initDynamic(&renderer->vboPos, NULL, SIZE_VBO_POS * sizeof(float));
+  vao_insertVBO(&renderer->vao, &renderer->vboPos, FLOATS_PER_POS);
 
-  VBO vboTexCoords;
-  vbo_init(&vboTexCoords, &textureCoords[0], sizeof(textureCoords));
-  vao_insertVBO(&renderer->vao, &vboTexCoords, 2);
+  vbo_initDynamic(&renderer->vboUV, NULL, SIZE_VBO_UV * sizeof(float));
+  vao_insertVBO(&renderer->vao, &renderer->vboUV, FLOATS_PER_UV);
 
   vao_unbind();
-  vbo_cleanup(&vboVertices);
-  vbo_cleanup(&vboTexCoords);
 
   shader_start(&renderer->shader);
   // Uniform Locations
   {
     renderer->location_projectionMatrix = shader_get_uniformLocation(&renderer->shader, "uProjectionMatrix");
-    renderer->location_transformationMatrix = shader_get_uniformLocation(&renderer->shader, "uTransformationMatrix");
-    renderer->location_spriteSize = shader_get_uniformLocation(&renderer->shader, "uSpriteSize");
-    renderer->location_atlasOffset = shader_get_uniformLocation(&renderer->shader, "uAtlasOffset");
   }
 
   // Load Unform Locations
@@ -89,39 +79,104 @@ void renderer2D_init(Renderer2D* renderer, const char* vertFilePath, const char*
   shader_stop();
 }
 
-void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float rot, float scale)
+void renderer2D_beginCamera(Renderer2D *renderer, Camera2D *cam)
 {
-  Sprite sprite = SPRITES[spriteID];
-  
+  renderer->quadCount = 0;
   shader_start(&renderer->shader);
   vao_bind(&renderer->vao);
 
   glActiveTexture(GL_TEXTURE0);
   texture_bind(&renderer->textureAtlas);
+ 
 
-  Mat4 transformationMatrix = transformation_matrix(pos, rot, (Vec2){sprite.size.x * scale, sprite.size.y * scale});
-  shader_loadMat4(renderer->location_transformationMatrix, transformationMatrix);
+}
 
-  shader_loadVec2i(renderer->location_spriteSize, sprite.size);
-  shader_loadVec2i(renderer->location_atlasOffset, sprite.atlasOffset);
+void renderer2D_begin(Renderer2D* renderer)
+{
+  renderer->quadCount = 0;
+  shader_start(&renderer->shader);
+  vao_bind(&renderer->vao);
+
+  glActiveTexture(GL_TEXTURE0);
+  texture_bind(&renderer->textureAtlas);
+}
+
+void renderer2D_flush(Renderer2D* renderer)
+{
+  if (renderer->quadCount == 0) return;
+
+  vbo_upload_subData(
+    &renderer->vboPos, 
+    0, 
+    renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_POS * sizeof(float), 
+    &renderer->posBuffer[0]
+  );
+
+  vbo_upload_subData(
+    &renderer->vboUV, 
+    0, 
+    renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_UV * sizeof(float), 
+    &renderer->uvBuffer[0]
+  );
 
   glDrawElements(GL_TRIANGLES, renderer->vao.vertexCount, GL_UNSIGNED_INT, NULL);
+}
+
+void renderer2D_end(Renderer2D* renderer)
+{
+  renderer2D_flush(renderer);
+  vao_unbind();
   
   texture_unbind();
-
-  vao_unbind();
   shader_stop();
+}
+
+void renderer2D_cleanup(Renderer2D* renderer)
+{
+  vbo_cleanup(&renderer->vboPos);
+  vbo_cleanup(&renderer->vboUV);
+  ebo_cleanup(&renderer->ebo);
+  vao_cleanup(&renderer->vao);
+  texture_cleanup(&renderer->textureAtlas);
+  shader_cleanup(&renderer->shader);
+}
+
+void renderer2D_drawSpritePro(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float rot, float scale)
+{
+  if(renderer->quadCount >= MAX_QUADS)  return;
+  
+  Sprite sprite = SPRITES[spriteID];
+  float hw = sprite.size.x * scale * 0.5f;
+  float hh = sprite.size.y * scale * 0.5f;
+
+  float lx[4] = {-hw, -hw, hw, hw};
+  float ly[4] = {hh, -hh, -hh, hh};
+
+  float rad = DEG_2_RAD * rot;
+  float cosV = cosf(rad);
+  float sinV = sinf(rad);
+  int posIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_POS;
+  for (int i=0; i < 4; i++)
+  {
+    renderer->posBuffer[posIDX + i * 2 + 0] = pos.x + lx[i] * cosV - ly[i] * sinV;
+    renderer->posBuffer[posIDX + i * 2 + 1] = pos.y + lx[i] * sinV - ly[i] * cosV;
+  }
+
+  float x0 = sprite.atlasOffset.x;
+  float x1 = sprite.atlasOffset.x + sprite.size.x;
+  float y0 = sprite.atlasOffset.y;
+  float y1 = sprite.atlasOffset.y + sprite.size.y;
+
+  int uvIDX = renderer->quadCount * VERT_PER_QUAD * FLOATS_PER_UV;
+  renderer->uvBuffer[uvIDX + 0] = x0; renderer->uvBuffer[uvIDX + 1] = y0;
+  renderer->uvBuffer[uvIDX + 2] = x0; renderer->uvBuffer[uvIDX + 3] = y1;
+  renderer->uvBuffer[uvIDX + 4] = x1; renderer->uvBuffer[uvIDX + 5] = y1;
+  renderer->uvBuffer[uvIDX + 6] = x1; renderer->uvBuffer[uvIDX + 7] = y0;
+
+  renderer->quadCount++;
 }
 
 void renderer2D_drawSprite(Renderer2D* renderer, SpriteID spriteID, Vec2 pos, float scale)
 {
   renderer2D_drawSpritePro(renderer, spriteID, pos, 0, scale);
-}
-
-void renderer2D_cleanup(Renderer2D* renderer)
-{
-  ebo_cleanup(&renderer->ebo);
-  vao_cleanup(&renderer->vao);
-  texture_cleanup(&renderer->textureAtlas);
-  shader_cleanup(&renderer->shader);
 }

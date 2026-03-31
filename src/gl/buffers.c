@@ -14,6 +14,22 @@ void vbo_init(VBO *vbo, float *data, size_t size)
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
+void vbo_initDynamic(VBO *vbo, float *data, size_t size)
+{
+  vbo->data = data;
+  vbo->size = size / sizeof(float);
+
+  glGenBuffers(1, &vbo->ID);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo->ID);
+  glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+}
+
+void vbo_upload_subData(VBO *vbo, int offset, size_t size, float *data)
+{
+  glBindBuffer(GL_ARRAY_BUFFER, vbo->ID);
+  glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+}
+
 void vbo_bind(const VBO *vbo)
 {
   glBindBuffer(GL_ARRAY_BUFFER, vbo->ID);

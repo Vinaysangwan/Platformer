@@ -205,6 +205,8 @@ void window_stop(void);
 void window_close(void);
 void window_set_vsync(bool enable);
 void window_swap_buffers(void);
+float get_deltaTime(void);
+int get_FPS(void);
 
 int window_get_width(void);
 int window_get_height(void);
