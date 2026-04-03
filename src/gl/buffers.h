@@ -11,9 +11,9 @@ typedef struct
   size_t size;
 } VBO;
 
-void vbo_init(VBO *vbo, float *data, size_t size);
-void vbo_initDynamic(VBO *vbo, float *data, size_t size);
-void vbo_upload_subData(VBO *vbo, int offset, size_t size, float *data);
+void vbo_init(VBO *vbo, void *data, size_t size);
+void vbo_initDynamic(VBO *vbo, void *data, size_t size);
+void vbo_upload_subData(VBO *vbo, int offset, size_t size, void *data);
 void vbo_bind(const VBO *vbo);
 void vbo_unbind();
 void vbo_cleanup(VBO *vbo);

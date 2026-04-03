@@ -17,4 +17,5 @@ typedef struct AnimEntity
   float scale;
   float timer;
   int currentFrame;
+  float fps;
 } AnimEntity;

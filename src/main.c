@@ -5,7 +5,6 @@
 
 #define MAX_TILES 50
 
-
 int main(void)
 {
   if(!window_create("Platformer", WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -22,12 +21,15 @@ int main(void)
     .pos = {16, 16},
     .rot = 0.0f,
     .scale = 1.0f,
+    .timer = 0.0f,
+    .currentFrame = 0,
+    .fps = 4
   };
-  float speed = 200;
+  float speed = 100;
 
   // init camera
   Camera2D camera = {
-    .pos = player.pos,
+    .pos = {0, 0},
     .rot = 0,
     .zoom = 2.0f,
   };
@@ -75,19 +77,37 @@ int main(void)
     if (key_down(KEY_A)) player.pos.x -= speed * dt;
     if (key_down(KEY_D)) player.pos.x += speed * dt;
 
+    if (key_pressed(KEY_Q))
+    {
+      if (player.spriteID == SPRITE_KNIGHT_IDLE)
+      {
+        player.spriteID = SPRITE_KNIGHT_RUN;
+        player.timer = 0;
+        player.currentFrame = 0;
+        player.fps = 8;
+      }
+      else if (player.spriteID == SPRITE_KNIGHT_RUN)
+      {
+        player.spriteID = SPRITE_KNIGHT_IDLE;
+        player.timer = 0;
+        player.currentFrame = 0;
+        player.fps = 4;
+      }
+    }
+
     clear_background(&COLOR_BLACK);
     // Game
     renderer2D_beginCamera(&renderer, &camera);
     {
-      // Tiles
+      // render Tiles
       for (int i=0; i < MAX_TILES; i++)
       {
         Entity tile = tiles[i];
-        renderer2D_drawEntity(&renderer, &tile);
+        renderer2D_drawSprite(&renderer, tile.spriteID, tile.pos, tile.scale);
       }
 
-      // Player
-      renderer2D_drawAnimEntity(&renderer, &player, 0.8);
+      // render Player
+      renderer2D_drawAnimEntity(&renderer, &player);
     }
     renderer2D_end(&renderer);
 

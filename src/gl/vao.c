@@ -18,6 +18,7 @@ void vao_insertVBO(VAO *vao, VBO *vbo, int coordinateSize)
 {
   glVertexAttribPointer(vao->vertexAttribArray, coordinateSize, GL_FLOAT, GL_FALSE, 0, (void*)0);
   glEnableVertexAttribArray(vao->vertexAttribArray);
+  glVertexAttribDivisor(vao->vertexAttribArray, 1);
   vao->vertexAttribArray++;
 }
 

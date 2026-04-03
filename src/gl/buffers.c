@@ -4,7 +4,7 @@
 // #############################################################################
 //                           VBO
 // #############################################################################
-void vbo_init(VBO *vbo, float *data, size_t size)
+void vbo_init(VBO *vbo, void *data, size_t size)
 {
   vbo->data = data;
   vbo->size = size / sizeof(float);
@@ -14,7 +14,7 @@ void vbo_init(VBO *vbo, float *data, size_t size)
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-void vbo_initDynamic(VBO *vbo, float *data, size_t size)
+void vbo_initDynamic(VBO *vbo, void *data, size_t size)
 {
   vbo->data = data;
   vbo->size = size / sizeof(float);
@@ -24,7 +24,7 @@ void vbo_initDynamic(VBO *vbo, float *data, size_t size)
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
 }
 
-void vbo_upload_subData(VBO *vbo, int offset, size_t size, float *data)
+void vbo_upload_subData(VBO *vbo, int offset, size_t size, void *data)
 {
   glBindBuffer(GL_ARRAY_BUFFER, vbo->ID);
   glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
